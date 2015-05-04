@@ -74,15 +74,17 @@ public class Main extends JavaPlugin implements Listener {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command,
 			String label, String[] args) {
-		Player p = (Player)sender;
 		if(!(sender instanceof Player)){
-			p.sendMessage("Do you realy want to login console?");
+			sender.sendMessage("Do you realy want to login console?");
 		}
+		Player p = (Player)sender;
 if(command.getName().equalsIgnoreCase("register")){
 	loginuser.remove(0);
+	p.sendMessage("Registrado.");
 }
 if(command.getName().equalsIgnoreCase("login")){
 	loginuser.remove(0);
+	p.sendMessage("Login Correcto.");
 }
 	return true;
 	}
