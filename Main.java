@@ -36,8 +36,8 @@ public class Main extends JavaPlugin implements Listener {
 	@EventHandler
 	public void adentro(PlayerJoinEvent e){
 		if(loginuser.contains(e.getPlayer().getName())){
-			e.getPlayer().sendMessage(ChatColor.RED + "You need to login.");
-			e.getPlayer().sendMessage(ChatColor.RED + "Use /login passwd.");}}
+			e.getPlayer().sendMessage(ChatColor.RED + "You need to login or register.");
+			e.getPlayer().sendMessage(ChatColor.RED + "Use /login passwd or /register passwd.");}}
 
 	@EventHandler
 	public void nomove(PlayerMoveEvent e) {
@@ -89,23 +89,24 @@ public class Main extends JavaPlugin implements Listener {
 			String label, String[] args) {
 		if(!(sender instanceof Player)){
 			sender.sendMessage("Do you realy want to login console?");
+			return false;
 		}
+		Player p = (Player) sender;
 if(command.getName().equalsIgnoreCase("register")){
 	if(args.length == 0){
-		sender.sendMessage("add the password");
+		sender.sendMessage("add the passwd");
 	}if(args.length == 1){
 	loginuser.remove(0);
 	sender.sendMessage("tu clave es: " + args[0]);
-	getConfig().set("password", args[0]);
-	getConfig().set("user", sender.getName());
+	getConfig().set(p.getName(), args[0]);
 	saveConfig();
 	}
 }
 if(command.getName().equalsIgnoreCase("login")){
 	if(args.length == 0){
-		sender.sendMessage("add the password");
+		sender.sendMessage("add the passwd");
 	}if(args.length == 1){
-		if((getConfig().getString("password").equals(args[0])) && (getConfig().getString("user").equals(sender.getName()))){
+		if(getConfig().getString(p.getName()).equals(args[0])){
 			loginuser.remove(0);
 			sender.sendMessage("Login Correcto.");	}
 	}
