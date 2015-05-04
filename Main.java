@@ -2,6 +2,7 @@ package com.craftilandia.logmein;
 
 import java.util.ArrayList;
 
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -10,6 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -32,7 +34,8 @@ public class Main extends JavaPlugin implements Listener {
 	@EventHandler
 	public void adentro(PlayerJoinEvent e){
 		if(loginuser.contains(e.getPlayer().getName())){
-			e.getPlayer().sendMessage("you need to login.");}}
+			e.getPlayer().sendMessage(ChatColor.RED + "You need to login.");
+			e.getPlayer().sendMessage(ChatColor.RED + "Use /login passwd.");}}
 
 	@EventHandler
 	public void nomove(PlayerMoveEvent e) {
@@ -70,6 +73,12 @@ public class Main extends JavaPlugin implements Listener {
 	public void saliendo(PlayerQuitEvent e){
 				
 	}
+	@EventHandler
+	public void inventario(InventoryClickEvent e){
+		if (e.getWhoClicked().getName() != null) {
+			if(loginuser.contains(e.getWhoClicked().getName())){
+				e.setCancelled(true);	
+			}}return;}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command,
@@ -82,8 +91,13 @@ if(command.getName().equalsIgnoreCase("register")){
 	sender.sendMessage("Registrado.");
 }
 if(command.getName().equalsIgnoreCase("login")){
-	loginuser.remove(0);
-	sender.sendMessage("Login Correcto.");
+	if(args.length == 0){
+		sender.sendMessage("add the password");
+	}if(args.length == 1){
+		sender.sendMessage("tu clave es: " + args[0]);
+		loginuser.remove(0);
+		sender.sendMessage("Login Correcto.");	
+	}
 }
 	return true;
 	}
