@@ -33,7 +33,7 @@ public class Main extends JavaPlugin implements Listener {
 	@EventHandler
 	public void adentro(PlayerJoinEvent e){
 		if(loginuser.contains(e.getPlayer().getName())){
-			e.getPlayer().sendMessage(ChatColor.RED + "Use /login passwd or /register passwd.");}}
+			e.getPlayer().sendMessage(ChatColor.RED + "Use /login passwd o /register passwd.");}}
 	@EventHandler
 	public void nomove(PlayerMoveEvent e) {
 		if(loginuser.contains(e.getPlayer().getName())){e.setCancelled(true);}
@@ -49,12 +49,12 @@ public class Main extends JavaPlugin implements Listener {
 	@EventHandler
 	public void nochat(AsyncPlayerChatEvent e){
 		if(loginuser.contains(e.getPlayer().getName())){e.setCancelled(true);
-		e.getPlayer().sendMessage("you can not chat before /login or /register");}
+		e.getPlayer().sendMessage("No puedes chatear antes de hacer /login o /register");}
 		else{e.setCancelled(false);}}
 	@EventHandler
-	public void nochat(PlayerDropItemEvent e){
+	public void nodrop(PlayerDropItemEvent e){
 		if(loginuser.contains(e.getPlayer().getName())){e.setCancelled(true);
-		e.getPlayer().sendMessage("you can not drop items before /login or /register");}
+		e.getPlayer().sendMessage("No puedes tirar items antes de hacer /login o /register");}
 		else{e.setCancelled(false);}}
 	@EventHandler
 	public void nodamage(EntityDamageByEntityEvent e){
@@ -106,7 +106,7 @@ public class Main extends JavaPlugin implements Listener {
 			if(e.getMessage().startsWith("/login") || e.getMessage().startsWith("/register")){
 				e.setCancelled(false);}
 			else{e.setCancelled(true);
-			e.getPlayer().sendMessage("you can not use /commands before /login or /register");}}}
+			e.getPlayer().sendMessage("No puedes usar /comandos antes de /login o /register");}}}
 	@Override
 	public boolean onCommand(CommandSender sender, Command command,
 			String label, String[] args) {
@@ -116,28 +116,29 @@ public class Main extends JavaPlugin implements Listener {
 		Player p = (Player) sender;
 if(command.getName().equalsIgnoreCase("register")){
 	if(args.length == 0){
-		sender.sendMessage("add the passwd");
+		sender.sendMessage("Agrega la passwd");
 	}if(args.length == 1){
 		if(getConfig().contains(p.getName())){
-			p.sendMessage("You are already register.");
+			p.sendMessage("Ya estas registrado, intenta /login passwd.");
 			return false;}
 		else {
 			loginuser.remove(p.getPlayer().getName());
-			sender.sendMessage("your passwd is: " + args[0]);
+			sender.sendMessage("Tu contraseña es: " + args[0]);
 			getConfig().set(p.getName(), args[0]);
 			saveConfig();
 			}}if(args.length >= 2){
-				p.sendMessage("too many passwords, just give one");}}
+				p.sendMessage("Solo puedes poner una passwd");}}
 if(command.getName().equalsIgnoreCase("login")){
 	if(args.length == 0){
-		sender.sendMessage("add the passwd");
+		sender.sendMessage("Agrega la passwd");
 	}if(args.length == 1){
 		if(getConfig().contains(p.getName())){
 		if(getConfig().getString(p.getName()).equals(args[0])){
 			if(loginuser.contains(p.getName())){
 				loginuser.remove(p.getPlayer().getName());
-				sender.sendMessage("Login Successful.");}
-			else{sender.sendMessage("You are already logged in.");}}
-		}else{p.sendMessage("you are not registred on this server, please do");
-		}}if(args.length >= 2){p.sendMessage("You put to many passwords put just one");
+				sender.sendMessage("Passwd Aceptada.");}
+			else{sender.sendMessage("Ya te has identificado.");}
+			}else {sender.sendMessage("Passwd Incorrecta");}
+		}else{p.sendMessage("Aun no estas registrado, intenta /register passwd");
+		}}if(args.length >= 2){p.sendMessage("Has puesto muchas passwd solo pon una");
 		}}return true;}}
