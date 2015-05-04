@@ -54,10 +54,6 @@ public class Main extends JavaPlugin implements Listener {
 	public void nochat(AsyncPlayerChatEvent e){
 		if(loginuser.contains(e.getPlayer().getName())){e.setCancelled(true);}
 		else{e.setCancelled(false);}}
-	
-	public void nocommand(PlayerCommandPreprocessEvent e){
-		if(loginuser.contains(e.getPlayer().getName())){e.setCancelled(true);}
-		else{e.setCancelled(false);}}
 	@EventHandler
 	public void nodamage(EntityDamageByEntityEvent e){
 		if(e.getEntity() instanceof Player){
@@ -79,7 +75,13 @@ public class Main extends JavaPlugin implements Listener {
 			if(loginuser.contains(e.getWhoClicked().getName())){
 				e.setCancelled(true);	
 			}}return;}
-	
+	@EventHandler
+	public void inventario(PlayerCommandPreprocessEvent e){
+		if(loginuser.contains(e.getPlayer().getName())){
+			if(e.getMessage().startsWith("/login") || e.getMessage().startsWith("/register")){
+				e.setCancelled(false);}
+			else{e.setCancelled(true);}
+		}}
 	@Override
 	public boolean onCommand(CommandSender sender, Command command,
 			String label, String[] args) {
