@@ -25,6 +25,8 @@ public class Main extends JavaPlugin implements Listener {
 	@Override
 	public void onEnable() {
 	getServer().getPluginManager().registerEvents(this, this);
+	getConfig().options().copyDefaults(true);
+	saveConfig();
 	}
 	ArrayList<String> loginuser = new ArrayList<String>();
 	@EventHandler
@@ -89,16 +91,23 @@ public class Main extends JavaPlugin implements Listener {
 			sender.sendMessage("Do you realy want to login console?");
 		}
 if(command.getName().equalsIgnoreCase("register")){
+	if(args.length == 0){
+		sender.sendMessage("add the password");
+	}if(args.length == 1){
 	loginuser.remove(0);
-	sender.sendMessage("Registrado.");
+	sender.sendMessage("tu clave es: " + args[0]);
+	getConfig().set("password", args[0]);
+	getConfig().set("user", sender.getName());
+	saveConfig();
+	}
 }
 if(command.getName().equalsIgnoreCase("login")){
 	if(args.length == 0){
 		sender.sendMessage("add the password");
 	}if(args.length == 1){
-		sender.sendMessage("tu clave es: " + args[0]);
-		loginuser.remove(0);
-		sender.sendMessage("Login Correcto.");	
+		if((getConfig().getString("password").equals(args[0])) && (getConfig().getString("user").equals(sender.getName()))){
+			loginuser.remove(0);
+			sender.sendMessage("Login Correcto.");	}
 	}
 }
 	return true;
