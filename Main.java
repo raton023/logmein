@@ -100,24 +100,30 @@ if(command.getName().equalsIgnoreCase("register")){
 			p.sendMessage("You are already register.");
 			return false;
 		}
-		
 		else {
-			
 			loginuser.remove(0);
-			sender.sendMessage("tu clave es: " + args[0]);
+			sender.sendMessage("your passwd is: " + args[0]);
 			getConfig().set(p.getName(), args[0]);
 			saveConfig();
+			}}if(args.length >= 2){
+				p.sendMessage("too many passwords, just give one");
 			}
 	}
-}
 if(command.getName().equalsIgnoreCase("login")){
 	if(args.length == 0){
 		sender.sendMessage("add the passwd");
 	}if(args.length == 1){
+		if(getConfig().contains(p.getName())){
 		if(getConfig().getString(p.getName()).equals(args[0])){
-			loginuser.remove(0);
-			sender.sendMessage("Login Correcto.");	}
-	}
+			if(loginuser.contains(p.getName())){
+				loginuser.remove(0);
+				sender.sendMessage("Login Successful.");
+			}
+			else{
+			sender.sendMessage("You are already logged in.");	}}
+		}else{
+			p.sendMessage("you are not registred on this server, please do");
+		}}
 }
 	return true;
 	}
