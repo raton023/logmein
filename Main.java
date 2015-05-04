@@ -1,5 +1,6 @@
 package com.craftilandia.logmein;
 import java.util.ArrayList;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -9,9 +10,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
@@ -48,11 +52,43 @@ public class Main extends JavaPlugin implements Listener {
 		e.getPlayer().sendMessage("you can not chat before /login or /register");}
 		else{e.setCancelled(false);}}
 	@EventHandler
+	public void nochat(PlayerDropItemEvent e){
+		if(loginuser.contains(e.getPlayer().getName())){e.setCancelled(true);
+		e.getPlayer().sendMessage("you can not drop items before /login or /register");}
+		else{e.setCancelled(false);}}
+	@EventHandler
 	public void nodamage(EntityDamageByEntityEvent e){
 		if(e.getEntity() instanceof Player){
 			Player p = (Player)e.getEntity();
 			if(loginuser.contains(p.getPlayer().getName())){e.setCancelled(true);}
 			else{e.setCancelled(false);}}}
+	@EventHandler
+	public void nodie(EntityDamageEvent e){
+		if(e.getEntity() instanceof Player){
+			Player p = (Player)e.getEntity();
+			if(loginuser.contains(p.getPlayer().getName())){
+				if(e.getCause() == DamageCause.FALL) {e.setCancelled(true);}
+				if(e.getCause() == DamageCause.BLOCK_EXPLOSION) {e.setCancelled(true);}
+				if(e.getCause() == DamageCause.CONTACT) {e.setCancelled(true);}
+				if(e.getCause() == DamageCause.DROWNING) {e.setCancelled(true);}
+				if(e.getCause() == DamageCause.STARVATION) {e.setCancelled(true);}
+				if(e.getCause() == DamageCause.FALLING_BLOCK) {e.setCancelled(true);}
+				if(e.getCause() == DamageCause.FIRE) {e.setCancelled(true);}
+				if(e.getCause() == DamageCause.FIRE_TICK) {e.setCancelled(true);}
+				if(e.getCause() == DamageCause.LAVA) {e.setCancelled(true);}
+				if(e.getCause() == DamageCause.SUFFOCATION) {e.setCancelled(true);}
+				}
+			else{
+				if(e.getCause() == DamageCause.FALL) {e.setCancelled(false);}
+				if(e.getCause() == DamageCause.BLOCK_EXPLOSION) {e.setCancelled(false);}
+				if(e.getCause() == DamageCause.CONTACT) {e.setCancelled(false);}
+				if(e.getCause() == DamageCause.DROWNING) {e.setCancelled(false);}
+				if(e.getCause() == DamageCause.STARVATION) {e.setCancelled(false);}
+				if(e.getCause() == DamageCause.FALLING_BLOCK) {e.setCancelled(false);}
+				if(e.getCause() == DamageCause.FIRE) {e.setCancelled(false);}
+				if(e.getCause() == DamageCause.FIRE_TICK) {e.setCancelled(false);}
+				if(e.getCause() == DamageCause.LAVA) {e.setCancelled(false);}
+				if(e.getCause() == DamageCause.SUFFOCATION) {e.setCancelled(false);}}}}
 	@EventHandler
 	public void items(PlayerInteractEvent e){
 		if(loginuser.contains(e.getPlayer().getName())){
