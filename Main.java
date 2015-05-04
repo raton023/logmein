@@ -96,10 +96,18 @@ if(command.getName().equalsIgnoreCase("register")){
 	if(args.length == 0){
 		sender.sendMessage("add the passwd");
 	}if(args.length == 1){
-	loginuser.remove(0);
-	sender.sendMessage("tu clave es: " + args[0]);
-	getConfig().set(p.getName(), args[0]);
-	saveConfig();
+		if(getConfig().contains(p.getName())){
+			p.sendMessage("You are already register.");
+			return false;
+		}
+		
+		else {
+			
+			loginuser.remove(0);
+			sender.sendMessage("tu clave es: " + args[0]);
+			getConfig().set(p.getName(), args[0]);
+			saveConfig();
+			}
 	}
 }
 if(command.getName().equalsIgnoreCase("login")){
