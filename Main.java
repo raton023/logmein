@@ -33,7 +33,11 @@ public class Main extends JavaPlugin implements Listener {
 	@EventHandler
 	public void adentro(PlayerJoinEvent e){
 		if(loginuser.contains(e.getPlayer().getName())){
-			e.getPlayer().sendMessage(ChatColor.RED + "Use /login passwd o /register passwd.");}}
+			if(getConfig().getString(e.getPlayer().getName() ) != null){
+				e.getPlayer().sendMessage(ChatColor.RED + "Use /login passwd.");}
+			else{
+					e.getPlayer().sendMessage(ChatColor.RED + "Use /register passwd.");}
+			}}
 	@EventHandler
 	public void nomove(PlayerMoveEvent e) {
 		if(loginuser.contains(e.getPlayer().getName())){e.setCancelled(true);}
