@@ -1,0 +1,10 @@
+name: logmein
+main: com.craftilandia.logmein.Main
+version: 1.0
+commands:
+    login:
+        usage: /<command>
+        description: Log in the server
+    register:
+        usage: /<command>
+        description: Register a new account.
