@@ -1,10 +1,16 @@
 name: logmein
-main: com.craftilandia.logmein.Main
-version: 1.0
+main: com.craftilandia.loginmein.Main
+version: 3.0
 commands:
     login:
-        usage: /<command>
-        description: Log in the server
+        usage: /login <password>
+        description: Login using your password
     register:
-        usage: /<command>
-        description: Register a new account.
+        usage: /register <password>
+        description: Register your player name
+    changepass:
+        usage: /changepass <password> <newpassword>
+        description: Change your password
+    unregister:
+        usage: /unregister <password>
+        description: unregister your player name
