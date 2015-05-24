@@ -1,1 +1,3 @@
-
+# PLAYER put this on motd to put the name of player
+# use colors with &a &b ... in motd
+# for the second line use \n in motd
