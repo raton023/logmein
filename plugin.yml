@@ -1,6 +1,6 @@
 name: LoginMeIn
 main: com.craftilandia.loginmein.Main
-version: 4.0
+version: 5
 commands:
     login:
         usage: /login <password>
@@ -9,8 +9,11 @@ commands:
         usage: /register <password>
         description: Register your player name
     changepass:
-        usage: /changepass PLAYER <password> <newpassword>
+        usage: /changepass player <password> <newpassword>
         description: Change your password
     unregister:
-        usage: /unregister PLAYER <password>
+        usage: /unregister player <password>
         description: unregister your player name
+    setemail:
+        usage: /setemail <password>
+        description: set your email for recover passwords
