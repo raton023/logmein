@@ -13,3 +13,8 @@ mysql:
   password: sqlpass
   port: 3306
 defaultmotd: "&aWelcome Player \n&bto the Server"
+gmail:
+  user: mailuserhere
+  password: mailpassword
+  subject: PLAYER Hey you complete the email registration
+  message: "Hi PLAYER This Email is from The Server of minecraft \n\n you complete registration!"
