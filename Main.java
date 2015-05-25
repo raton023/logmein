@@ -8,6 +8,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Properties;
+
+import javax.mail.Authenticator;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -33,9 +43,10 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.event.server.ServerListPingEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+
 public class Main extends JavaPlugin implements Listener {
-	File archivo = new File(getDataFolder(), "players.yml");;
-	FileConfiguration getConfigplayers = YamlConfiguration.loadConfiguration(archivo);;
+	File archivo = new File(getDataFolder(), "players.yml");
+	FileConfiguration getConfigplayers = YamlConfiguration.loadConfiguration(archivo);
 	@Override
 	public void onEnable() {
 	getServer().getPluginManager().registerEvents(this, this);
@@ -70,7 +81,7 @@ public class Main extends JavaPlugin implements Listener {
         rs.close();
         Statement st = conn.createStatement(); 
         System.out.println("[LoginMeIn] MySQL the table users was found creating one for you");
-        String sql = "CREATE TABLE users (id int NOT NULL AUTO_INCREMENT KEY,player varchar(25) UNIQUE KEY,password varchar(25),motd varchar(55),ip varchar(20),online int);";
+        String sql = "CREATE TABLE users (id int NOT NULL AUTO_INCREMENT KEY,player varchar(25) UNIQUE KEY,password varchar(25),motd varchar(55),email varchar(55),ip varchar(20),online int);";
         st.executeUpdate(sql);
         st.close();
         conn.close();
@@ -292,7 +303,7 @@ public class Main extends JavaPlugin implements Listener {
 				            String url = "jdbc:mysql://"+ip+":"+port+"/"+database; 
 				            Connection conn = DriverManager.getConnection(url,user,password); 
 				            Statement st = conn.createStatement(); 
-				            st.executeUpdate("INSERT INTO users (player, password, motd, ip, online) VALUES ('"+ p.getName() +"', '"+ args[0] +"', '&aWelcome Back PLAYER \n&bWe Missed You!', '"+ p.getAddress().getHostName() +"', 1);"); 
+				            st.executeUpdate("INSERT INTO users (player, password, motd, email, ip, online) VALUES ('"+ p.getName() +"', '"+ args[0] +"', '&aWelcome Back PLAYER \n&bWe Missed You!', 'none', '"+ p.getAddress().getHostName() +"', 1);"); 
 				            st.close();
 				            conn.close(); 
 				            loginuser.remove(p.getPlayer().getName());
@@ -317,6 +328,7 @@ public class Main extends JavaPlugin implements Listener {
 					getConfigplayers.set(p.getName() + ".password", args[0]);
 					getConfigplayers.set(p.getName() + ".motd", "&aWelcome Back PLAYER \n&bWe Missed You!");			
 					getConfigplayers.set(p.getAddress().getHostName().replace(".", ",") + ".name", p.getName());
+					getConfigplayers.set(p.getName() + ".email", "none");
 					try {getConfigplayers.save(archivo);} catch (IOException e) {e.printStackTrace();}
 				}
 					}if(args.length >= 2){
@@ -461,6 +473,133 @@ public class Main extends JavaPlugin implements Listener {
 					}
 		}
 		
+		if(command.getName().equalsIgnoreCase("setemail")){
+			if(args.length == 0){
+				sender.sendMessage(ChatColor.DARK_PURPLE + "use /setemail email@gmail.com");
+			}
+			if(args.length == 1){
+				 
+				
+			      //start the saving on databases
+			      if(!getConfig().getBoolean("mysql.use")){
+			    	  if(args[0].contains("@")){
+			    	  getConfigplayers.set(p.getName() + ".email", args[0]);			
+						try {getConfigplayers.save(archivo);} catch (IOException e) {e.printStackTrace();}
+						//start of mail
+						Properties props = new Properties();
+					    props.put("mail.smtp.host", "smtp.gmail.com");
+					    props.put("mail.smtp.socketFactory.port", "465");
+					    props.put("mail.smtp.socketFactory.class", 
+					      "javax.net.ssl.SSLSocketFactory");
+					    props.put("mail.smtp.auth", "true");
+					    props.put("mail.smtp.port", "465");
+					    Session session = Session.getInstance(props, new Authenticator()
+					      {protected PasswordAuthentication getPasswordAuthentication(){
+					          return new PasswordAuthentication(getConfig().getString("gmail.user"),getConfig().getString("gmail.password"));}
+					      });
+					    try
+					    {
+					      Message message = new MimeMessage(session);
+					      message.setFrom(new InternetAddress("gmail_username"));
+					      message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(getConfig().getString("gmail.user")+"@gmail.com"));
+					      message.setSubject(getConfig().getString("gmail.subject").replace("PLAYER", p.getName()));
+					      message.setText(getConfig().getString("gmail.message").replace("PLAYER", p.getName()));
+					      Transport.send(message);
+					      p.sendMessage(ChatColor.GREEN+"Your email "+args[0]+" is now set");
+					      props.clear();
+					    }
+					    catch (MessagingException e)
+					    {
+					    	p.sendMessage(ChatColor.DARK_PURPLE+"Email registration failed");
+					      throw new RuntimeException(e);
+					    }
+					    
+					    //end of mail
+						
+						
+			      }else{
+			    	  p.sendMessage(ChatColor.DARK_PURPLE+"Please use an email");
+			    	  return true;
+			      }
+			      }
+			      if(getConfig().getBoolean("mysql.use")){
+			    	  if(args[0].contains("@")){
+			    	  try { 
+							String ip = getConfig().getString("mysql.ip");
+							String database = getConfig().getString("mysql.database");
+							String user = getConfig().getString("mysql.user");
+							String passwd = getConfig().getString("mysql.password");
+							String port = getConfig().getString("mysql.port");
+				            String url = "jdbc:mysql://"+ip+":"+port+"/"+database; 
+				            Connection conn = DriverManager.getConnection(url,user,passwd); 
+				            PreparedStatement tomar = conn.prepareStatement("SELECT email FROM `users` WHERE player=?;");
+				          //can be player=?,iteminhand=?coins=?,onlineoffline=?;  nameoftable=?
+				          tomar.setString(1, p.getName());// ... tomar.setString(2, p.getIteminhand)
+				          ResultSet obtenido = tomar.executeQuery();//pone en un como array los resultados
+				          obtenido.next();//de lo mismo que el de arriba
+				          PreparedStatement cambiar = conn.prepareStatement("UPDATE `users` SET email=? WHERE player=?;");
+				          cambiar.setString(1, args[0]);//la clave 
+				          cambiar.setString(2, p.getName());
+				          cambiar.executeUpdate();  
+				          cambiar.close();
+				            obtenido.close();
+				            tomar.close();
+				            conn.close(); 
+				          //start of mail
+							Properties props = new Properties();
+						    props.put("mail.smtp.host", "smtp.gmail.com");
+						    props.put("mail.smtp.socketFactory.port", "465");
+						    props.put("mail.smtp.socketFactory.class", 
+						      "javax.net.ssl.SSLSocketFactory");
+						    props.put("mail.smtp.auth", "true");
+						    props.put("mail.smtp.port", "465");
+						    Session session = Session.getInstance(props, new Authenticator()
+						      {protected PasswordAuthentication getPasswordAuthentication(){
+						          return new PasswordAuthentication(getConfig().getString("gmail.user"),getConfig().getString("gmail.password"));}
+						      });
+						    try
+						    {
+						      Message message = new MimeMessage(session);
+						      message.setFrom(new InternetAddress("gmail_username"));
+						      message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(getConfig().getString("gmail.user")+"@gmail.com"));
+						      message.setSubject(getConfig().getString("gmail.subject").replace("PLAYER", p.getName()));
+						      message.setText(getConfig().getString("gmail.message").replace("PLAYER", p.getName()));
+						      Transport.send(message);
+						      p.sendMessage(ChatColor.GREEN+"Your email "+args[0]+" is now set");
+						      props.clear();
+						    }
+						    catch (MessagingException e)
+						    {
+						    	p.sendMessage(ChatColor.DARK_PURPLE+"Email registration failed");
+						      throw new RuntimeException(e);
+						    }
+						    
+						    //end of mail
+				            
+						} catch (Exception e) { 
+							//if(e.getMessage().contains("empty")){
+				            //	p.sendMessage(ChatColor.DARK_PURPLE+"That player is not registered");
+				            //	return true;
+				            //}
+				            System.err.println("Login SQL Error! on player changepasswd "); 
+				            System.err.println(e.getMessage()); 
+				            p.sendMessage(ChatColor.DARK_PURPLE+"Please comment to admin this error: " + e.getMessage());
+				        }
+			      }else{
+			    	  p.sendMessage(ChatColor.DARK_PURPLE+"Please use an email");
+			    	  return true;
+			      }}
+			      
+			      
+			    
+				
+			}
+			if(args.length >= 2){
+				sender.sendMessage(ChatColor.DARK_PURPLE + "use /setemail email@gmail.com");
+			}
+		}
+		
+		
 if(command.getName().equalsIgnoreCase("login")){
 	if(args.length == 0){
 		sender.sendMessage(ChatColor.DARK_PURPLE + "use /login password");
@@ -531,4 +670,8 @@ if(command.getName().equalsIgnoreCase("login")){
 		            p.sendMessage(ChatColor.DARK_PURPLE+"Please comment to admin this error: " + e.getMessage());
 		        }}}
 		if(args.length >= 2){p.sendMessage(ChatColor.DARK_PURPLE + "You put to many passwords put just one");
-		}}return true;}}
+		}}return true;}
+	
+	
+	
+}
