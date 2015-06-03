@@ -71,16 +71,15 @@ public class Main extends JavaPlugin implements Listener {
         ResultSet rs = md.getTables(null, null, "%", null);
         while (rs.next()) {//the .next is like the for i var...
           if(rs.getString(3).equals("users")){
-        	  System.out.println("[LoginMeIn] MySQL the table "+rs.getString(3)+" was found");
+        	  System.out.println("[LoginMeIn] MySQL table "+rs.getString(3)+" was found");
         	  rs.close();
           conn.close();
           return;
           }
-          
         }
         rs.close();
         Statement st = conn.createStatement(); 
-        System.out.println("[LoginMeIn] MySQL the table users was found creating one for you");
+        System.out.println("[LoginMeIn] MySQL the table users was not found creating one for you");
         String sql = "CREATE TABLE users (id int NOT NULL AUTO_INCREMENT KEY,player varchar(25) UNIQUE KEY,password varchar(25),motd varchar(55),email varchar(55),ip varchar(20),online int);";
         st.executeUpdate(sql);
         st.close();
@@ -282,6 +281,7 @@ public class Main extends JavaPlugin implements Listener {
 				e.setCancelled(false);}
 			else{e.setCancelled(true);
 			e.getPlayer().sendMessage(ChatColor.DARK_PURPLE + "/login <password> or /register <password>");}}}
+	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command,
 			String label, String[] args) {
@@ -478,8 +478,7 @@ public class Main extends JavaPlugin implements Listener {
 				sender.sendMessage(ChatColor.DARK_PURPLE + "use /setemail email@gmail.com");
 			}
 			if(args.length == 1){
-				 
-				
+				 				
 			      //start the saving on databases
 			      if(!getConfig().getBoolean("mysql.use")){
 			    	  if(args[0].contains("@")){
@@ -501,7 +500,7 @@ public class Main extends JavaPlugin implements Listener {
 					    {
 					      Message message = new MimeMessage(session);
 					      message.setFrom(new InternetAddress("gmail_username"));
-					      message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(getConfig().getString("gmail.user")+"@gmail.com"));
+					      message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(args[0]));
 					      message.setSubject(getConfig().getString("gmail.subject").replace("PLAYER", p.getName()));
 					      message.setText(getConfig().getString("gmail.message").replace("PLAYER", p.getName()));
 					      Transport.send(message);
@@ -561,7 +560,7 @@ public class Main extends JavaPlugin implements Listener {
 						    {
 						      Message message = new MimeMessage(session);
 						      message.setFrom(new InternetAddress("gmail_username"));
-						      message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(getConfig().getString("gmail.user")+"@gmail.com"));
+						      message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(args[0]));
 						      message.setSubject(getConfig().getString("gmail.subject").replace("PLAYER", p.getName()));
 						      message.setText(getConfig().getString("gmail.message").replace("PLAYER", p.getName()));
 						      Transport.send(message);
@@ -671,7 +670,5 @@ if(command.getName().equalsIgnoreCase("login")){
 		        }}}
 		if(args.length >= 2){p.sendMessage(ChatColor.DARK_PURPLE + "You put to many passwords put just one");
 		}}return true;}
-	
-	
 	
 }
