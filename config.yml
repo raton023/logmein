@@ -1,10 +1,13 @@
 # default motd is the motd that shows to unregistered players
 # the motd for registered players is in players.yml or in your mysql database
 # PLAYER put this on motd to put the name of player
+# PLAYER and PASSWORD on gmail message will be replace with playername and password of player
 # use colors with &a &b ... in motd
 # for the second line use \n in motd
-# on ip is the ip of the MySQL
 # the use is true for use the mysql or false to use player.yml
+# forceregister is to force unregistered players to register, registered players will be force to login anyway
+# worldtospawn is the name of the default world when you want players to spawn before login, after login they will
+# be teleport to last saved location, is important that you set a spawn point in that world with /setworldspawn
 mysql:
   use: false
   ip: 127.0.0.1
@@ -13,8 +16,10 @@ mysql:
   password: sqlpass
   port: 3306
 defaultmotd: "&aWelcome Player \n&bto the Server"
+forceregister: false
+worldtospawn: world
 gmail:
   user: mailuserhere
   password: mailpassword
-  subject: PLAYER Hey you complete the email registration
-  message: "Hi PLAYER This Email is from The Server of minecraft \n\n you complete registration!"
+  subject: PLAYER Seems like you forgot your password
+  message: "Hi PLAYER This Email is from The Server of minecraft \n\n you forgot your password the password is PASSWORD if \n\nwasnt you ignore this message!"
