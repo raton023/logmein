@@ -38,6 +38,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginEnableEvent;
@@ -89,14 +90,19 @@ public class Main extends JavaPlugin implements Listener {
         System.err.println(e.getMessage());}}
 	
 	}
-	
 	ArrayList<String> loginuser = new ArrayList<String>();
 
 	@EventHandler
 	public void entrando(PlayerLoginEvent e){
-		loginuser.add(e.getPlayer().getName());
-		e.getPlayer().sendMessage(ChatColor.DARK_PURPLE + "Use /login <password> or /register <password>");
-	}
+		if(getConfig().getBoolean("forceregister") == true){
+			loginuser.add(e.getPlayer().getName());
+			e.getPlayer().sendMessage(ChatColor.DARK_PURPLE + "Use /login <password> or /register <password>");
+		}
+		if(getConfig().getBoolean("forceregister") == false){
+			if(getConfigplayers.getString(e.getPlayer().getName()) != null){
+				loginuser.add(e.getPlayer().getName());
+				}
+			}}
 	
 	@EventHandler
 	public void enreload(PluginEnableEvent e){
@@ -105,7 +111,25 @@ public class Main extends JavaPlugin implements Listener {
 		p.sendMessage(ChatColor.DARK_PURPLE+"Please /login <password> again due a Server reload");
 		}
 	}
-	
+	@EventHandler
+	public void adentro(PlayerJoinEvent e){
+		for(int s=0;s<getServer().getWorlds().size();s++){
+			if(getServer().getWorlds().get(s).getWorldFolder().toString().replace("./", "").equals(getConfig().getString("worldtospawn"))){
+				int x = getConfigplayers.getInt("saveloc."+e.getPlayer().getName()+".x");
+				int y = getConfigplayers.getInt("saveloc."+e.getPlayer().getName()+".y");
+				int z = getConfigplayers.getInt("saveloc."+e.getPlayer().getName()+".z");
+				Location newloc = new Location(getServer().getWorlds().get(s), x,y,z);
+				e.getPlayer().teleport(newloc);
+				e.getPlayer().sendMessage(ChatColor.YELLOW + "teleporting to spawn");	
+			}}
+		e.getPlayer().teleport(e.getPlayer().getWorld().getSpawnLocation());		
+		e.getPlayer().sendMessage(ChatColor.YELLOW + "teleporting to spawn before login or register");	
+		if(getConfigplayers.getString(e.getPlayer().getName()) != null){
+		e.getPlayer().sendMessage(ChatColor.DARK_PURPLE+"Please /login <password>");
+		}
+		if(getConfigplayers.getString(e.getPlayer().getName()) == null){
+		e.getPlayer().sendMessage(ChatColor.DARK_PURPLE+"Please /register <password>");
+	}}
 	
 	@EventHandler
 	public void motd(ServerListPingEvent em){
@@ -117,12 +141,10 @@ public class Main extends JavaPlugin implements Listener {
 				return;
 			}
 			String name = getConfigplayers.getString(em.getAddress().getHostName().replace(".", ",") + ".name");
-
 			String getmotd = getConfigplayers.getString(name + ".motd").replace("PLAYER", name);
 			String setmotd = ChatColor.translateAlternateColorCodes('&', getmotd);
 		em.setMotd(setmotd);
 		}
-		
 		if(getConfig().getBoolean("mysql.use")){
 		try { 
 			String ip = getConfig().getString("mysql.ip");
@@ -156,14 +178,11 @@ public class Main extends JavaPlugin implements Listener {
 	
 	@EventHandler
 	public void saliendo(PlayerQuitEvent e){
-		
-			getConfigplayers.set("saveloc."+e.getPlayer().getName()+".x",e.getPlayer().getLocation().getX());
+		getConfigplayers.set("saveloc."+e.getPlayer().getName()+".world",e.getPlayer().getWorld().getWorldFolder().toString().replace("./", ""));
+		getConfigplayers.set("saveloc."+e.getPlayer().getName()+".x",e.getPlayer().getLocation().getX());
 			getConfigplayers.set("saveloc."+e.getPlayer().getName()+".y",e.getPlayer().getLocation().getY());
 			getConfigplayers.set("saveloc."+e.getPlayer().getName()+".z",e.getPlayer().getLocation().getZ());
 			try {getConfigplayers.save(archivo);} catch (IOException e1) {e1.printStackTrace();}
-			
-		
-		
 		if(getConfig().getBoolean("mysql.use")){
 		try { 
 			String ip = getConfig().getString("mysql.ip");
@@ -182,21 +201,15 @@ public class Main extends JavaPlugin implements Listener {
 		} catch (Exception esql) { 
             System.err.println("Login SQL Error on player leaving!"); 
             System.err.println(esql.getMessage()); 
-        }}
-	}
-	
+        }}}
 	@Override
 	public void onDisable() {
-		
-			
 				for(Player p : getServer().getOnlinePlayers()){
-				getConfigplayers.set("saveloc."+p.getPlayer().getName()+".x",p.getPlayer().getLocation().getX());
-				getConfigplayers.set("saveloc."+p.getPlayer().getName()+".y",p.getPlayer().getLocation().getY());
-				getConfigplayers.set("saveloc."+p.getPlayer().getName()+".z",p.getPlayer().getLocation().getZ());	
+					getConfigplayers.set("saveloc."+p.getName()+".world",p.getPlayer().getWorld().getWorldFolder().toString().replace("./", ""));
+					getConfigplayers.set("saveloc."+p.getPlayer().getName()+".x",p.getPlayer().getLocation().getX());
+					getConfigplayers.set("saveloc."+p.getPlayer().getName()+".y",p.getPlayer().getLocation().getY());
+					getConfigplayers.set("saveloc."+p.getPlayer().getName()+".z",p.getPlayer().getLocation().getZ());	
 				try {getConfigplayers.save(archivo);} catch (IOException e1) {e1.printStackTrace();}
-				
-			
-			
 			if(getConfig().getBoolean("mysql.use")){
 			try { 
 				String ip = getConfig().getString("mysql.ip");
@@ -277,10 +290,10 @@ public class Main extends JavaPlugin implements Listener {
 	@EventHandler
 	public void comandos(PlayerCommandPreprocessEvent e){
 		if(loginuser.contains(e.getPlayer().getName())){
-			if(e.getMessage().startsWith("/login") || e.getMessage().startsWith("/register")){
+			if(e.getMessage().startsWith("/login") || e.getMessage().startsWith("/register")|| e.getMessage().startsWith("/forgotpass")){
 				e.setCancelled(false);}
 			else{e.setCancelled(true);
-			e.getPlayer().sendMessage(ChatColor.DARK_PURPLE + "/login <password> or /register <password>");}}}
+			e.getPlayer().sendMessage(ChatColor.DARK_PURPLE + "/login <password> or /register <password> or /forgotpass");}}}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command,
@@ -303,7 +316,7 @@ public class Main extends JavaPlugin implements Listener {
 				            String url = "jdbc:mysql://"+ip+":"+port+"/"+database; 
 				            Connection conn = DriverManager.getConnection(url,user,password); 
 				            Statement st = conn.createStatement(); 
-				            st.executeUpdate("INSERT INTO users (player, password, motd, email, ip, online) VALUES ('"+ p.getName() +"', '"+ args[0] +"', '&aWelcome Back PLAYER \n&bWe Missed You!', 'none', '"+ p.getAddress().getHostName() +"', 1);"); 
+				            st.executeUpdate("INSERT INTO users (player, password, motd, email, ip, online) VALUES ('"+ p.getName() +"', '"+ args[0] +"', '&aWelcome Back PLAYER \n&bWe Missed You!', 'username@gmail.com', '"+ p.getAddress().getHostName() +"', 1);"); 
 				            st.close();
 				            conn.close(); 
 				            loginuser.remove(p.getPlayer().getName());
@@ -328,7 +341,7 @@ public class Main extends JavaPlugin implements Listener {
 					getConfigplayers.set(p.getName() + ".password", args[0]);
 					getConfigplayers.set(p.getName() + ".motd", "&aWelcome Back PLAYER \n&bWe Missed You!");			
 					getConfigplayers.set(p.getAddress().getHostName().replace(".", ",") + ".name", p.getName());
-					getConfigplayers.set(p.getName() + ".email", "none");
+					getConfigplayers.set(p.getName() + ".email", "username@gmail.com");
 					try {getConfigplayers.save(archivo);} catch (IOException e) {e.printStackTrace();}
 				}
 					}if(args.length >= 2){
@@ -354,10 +367,7 @@ public class Main extends JavaPlugin implements Listener {
 						}else{
 							sender.sendMessage(ChatColor.DARK_PURPLE + "incorrect password");}}}
 					else{
-						sender.sendMessage(ChatColor.DARK_PURPLE + "that player is not registered");
-					}
-					}
-				
+						sender.sendMessage(ChatColor.DARK_PURPLE + "that player is not registered");}}
 				if(getConfig().getBoolean("mysql.use")){
 				try { 
 					String ip = getConfig().getString("mysql.ip");
@@ -388,13 +398,10 @@ public class Main extends JavaPlugin implements Listener {
 				} catch (Exception e) { 
 		            if(e.getMessage().contains("empty")){
 		            	p.sendMessage(ChatColor.DARK_PURPLE+"That player is not registered");
-		            	return true;
-		            }
+		            	return true;}
 		            System.err.println("Login SQL Error! on player unregistered"); 
 		            System.err.println(e.getMessage()); 
-		            p.sendMessage(ChatColor.DARK_PURPLE+"Please comment to admin this error: " + e.getMessage());
-		        }
-				
+		            p.sendMessage(ChatColor.DARK_PURPLE+"Please comment to admin this error: " + e.getMessage());}
 				}}if(args.length >= 3){
 						p.sendMessage(ChatColor.DARK_PURPLE + "use /unregister player password");}}
 		if(command.getName().equalsIgnoreCase("changepass")){
@@ -405,10 +412,7 @@ public class Main extends JavaPlugin implements Listener {
 				sender.sendMessage(ChatColor.DARK_PURPLE + "use /changepass player password newpassword");
 			}
 			if(args.length == 2){
-				
 					sender.sendMessage(ChatColor.DARK_PURPLE + "use /changepass player password newpassword");
-				
-				
 				}if(args.length == 3){
 						if(!getConfig().getBoolean("mysql.use")){
 							if(getConfigplayers.contains(args[0])){
@@ -420,14 +424,9 @@ public class Main extends JavaPlugin implements Listener {
 									catch (IOException e) {e.printStackTrace();}
 									
 								}else{
-									sender.sendMessage(ChatColor.DARK_PURPLE + "incorrect password");
-								}}}
+									sender.sendMessage(ChatColor.DARK_PURPLE + "incorrect password");}}}
 							else{
-								sender.sendMessage(ChatColor.DARK_PURPLE + "player is not registered");
-								
-							}
-						}
-						
+								sender.sendMessage(ChatColor.DARK_PURPLE + "player is not registered");}}
 						if(getConfig().getBoolean("mysql.use")){
 							try { 
 								String ip = getConfig().getString("mysql.ip");
@@ -464,63 +463,26 @@ public class Main extends JavaPlugin implements Listener {
 					            System.err.println("Login SQL Error! on player changepasswd "); 
 					            System.err.println(e.getMessage()); 
 					            p.sendMessage(ChatColor.DARK_PURPLE+"Please comment to admin this error: " + e.getMessage());
-					        }
-								}
-						
-				}
+					        }}}
 					if(args.length >= 4){
 						p.sendMessage(ChatColor.DARK_PURPLE + "use /changepass player password newpassword");
-					}
-		}
-		
+					}}
 		if(command.getName().equalsIgnoreCase("setemail")){
 			if(args.length == 0){
 				sender.sendMessage(ChatColor.DARK_PURPLE + "use /setemail email@gmail.com");
 			}
 			if(args.length == 1){
-				 				
 			      //start the saving on databases
 			      if(!getConfig().getBoolean("mysql.use")){
 			    	  if(args[0].contains("@")){
 			    	  getConfigplayers.set(p.getName() + ".email", args[0]);			
-						try {getConfigplayers.save(archivo);} catch (IOException e) {e.printStackTrace();}
-						//start of mail
-						Properties props = new Properties();
-					    props.put("mail.smtp.host", "smtp.gmail.com");
-					    props.put("mail.smtp.socketFactory.port", "465");
-					    props.put("mail.smtp.socketFactory.class", 
-					      "javax.net.ssl.SSLSocketFactory");
-					    props.put("mail.smtp.auth", "true");
-					    props.put("mail.smtp.port", "465");
-					    Session session = Session.getInstance(props, new Authenticator()
-					      {protected PasswordAuthentication getPasswordAuthentication(){
-					          return new PasswordAuthentication(getConfig().getString("gmail.user"),getConfig().getString("gmail.password"));}
-					      });
-					    try
-					    {
-					      Message message = new MimeMessage(session);
-					      message.setFrom(new InternetAddress("gmail_username"));
-					      message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(args[0]));
-					      message.setSubject(getConfig().getString("gmail.subject").replace("PLAYER", p.getName()));
-					      message.setText(getConfig().getString("gmail.message").replace("PLAYER", p.getName()));
-					      Transport.send(message);
-					      p.sendMessage(ChatColor.GREEN+"Your email "+args[0]+" is now set");
-					      props.clear();
-					    }
-					    catch (MessagingException e)
-					    {
-					    	p.sendMessage(ChatColor.DARK_PURPLE+"Email registration failed");
-					      throw new RuntimeException(e);
-					    }
-					    
-					    //end of mail
-						
-						
+						try {getConfigplayers.save(archivo);
+						sender.sendMessage(ChatColor.YELLOW + "the email has been set to "+args[0]);
+} catch (IOException e) {e.printStackTrace();}	
 			      }else{
 			    	  p.sendMessage(ChatColor.DARK_PURPLE+"Please use an email");
 			    	  return true;
-			      }
-			      }
+			      }}
 			      if(getConfig().getBoolean("mysql.use")){
 			    	  if(args[0].contains("@")){
 			    	  try { 
@@ -537,10 +499,81 @@ public class Main extends JavaPlugin implements Listener {
 				          ResultSet obtenido = tomar.executeQuery();//pone en un como array los resultados
 				          obtenido.next();//de lo mismo que el de arriba
 				          PreparedStatement cambiar = conn.prepareStatement("UPDATE `users` SET email=? WHERE player=?;");
-				          cambiar.setString(1, args[0]);//la clave 
+				          cambiar.setString(1, args[0]);//el email 
 				          cambiar.setString(2, p.getName());
 				          cambiar.executeUpdate();  
 				          cambiar.close();
+				            obtenido.close();
+				            tomar.close();
+				            conn.close(); 
+							sender.sendMessage(ChatColor.YELLOW + " the email has been set to "+args[0]);
+						} catch (Exception e) { 
+							//if(e.getMessage().contains("empty")){
+				            //	p.sendMessage(ChatColor.DARK_PURPLE+"That player is not registered");
+				            //	return true;
+				            //}
+				            System.err.println("Login SQL Error! on player changepasswd "); 
+				            System.err.println(e.getMessage()); 
+				            p.sendMessage(ChatColor.DARK_PURPLE+"Please comment to admin this error: " + e.getMessage());
+				        }
+			      }else{
+			    	  p.sendMessage(ChatColor.DARK_PURPLE+"Please use an email");
+			    	  return true;
+			      }}}
+			if(args.length >= 2){
+				sender.sendMessage(ChatColor.DARK_PURPLE + "use /setemail email@gmail.com");
+			}}
+		
+		if(command.getName().equalsIgnoreCase("forgotpass")){
+			if(args.length == 0){		
+			      //start the saving on databases
+			      if(!getConfig().getBoolean("mysql.use")){
+			    	  String pass = getConfigplayers.getString(p.getName() + ".password");			
+			    	  String usermail = getConfigplayers.getString(p.getName() + ".email");			
+						try {getConfigplayers.save(archivo);} catch (IOException e) {e.printStackTrace();}
+						//start of mail
+						Properties props = new Properties();
+					    props.put("mail.smtp.host", "smtp.gmail.com");
+					    props.put("mail.smtp.socketFactory.port", "465");
+					    props.put("mail.smtp.socketFactory.class", 
+					      "javax.net.ssl.SSLSocketFactory");
+					    props.put("mail.smtp.auth", "true");
+					    props.put("mail.smtp.port", "465");
+					    Session session = Session.getInstance(props, new Authenticator()
+					      {protected PasswordAuthentication getPasswordAuthentication(){
+					          return new PasswordAuthentication(getConfig().getString("gmail.user"),getConfig().getString("gmail.password"));}
+					      });
+					    try
+					    {Message message = new MimeMessage(session);
+					      message.setFrom(new InternetAddress("gmail_username"));
+					      message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(usermail));
+					      message.setSubject(getConfig().getString("gmail.subject").replace("PLAYER", p.getName()));
+					      message.setText(getConfig().getString("gmail.message").replace("PLAYER", p.getName()).replace("PASSWORD", pass));
+					      Transport.send(message);
+					      p.sendMessage(ChatColor.GREEN+"Your password reminder has been sent to "+usermail);
+					      props.clear();
+					    }catch (MessagingException e)
+					    {p.sendMessage(ChatColor.DARK_PURPLE+"Email password reminder failed");
+					      throw new RuntimeException(e);} 
+					    //end of mail
+			      }
+			      if(getConfig().getBoolean("mysql.use")){
+			    	  try { 
+							String ip = getConfig().getString("mysql.ip");
+							String database = getConfig().getString("mysql.database");
+							String user = getConfig().getString("mysql.user");
+							String passwd = getConfig().getString("mysql.password");
+							String port = getConfig().getString("mysql.port");
+				            String url = "jdbc:mysql://"+ip+":"+port+"/"+database; 
+				            Connection conn = DriverManager.getConnection(url,user,passwd); 
+				            PreparedStatement tomar = conn.prepareStatement("SELECT email,password FROM `users` WHERE player=?;");
+				          //can be player=?,iteminhand=?coins=?,onlineoffline=?;  nameoftable=?
+				          tomar.setString(1, p.getName());// ... tomar.setString(2, p.getIteminhand)
+				          ResultSet obtenido = tomar.executeQuery();//pone en un como array los resultados
+				          obtenido.next();//de lo mismo que el de arriba
+				          
+				          String pass = obtenido.getString("password");
+				          String usermail = obtenido.getString("email");
 				            obtenido.close();
 				            tomar.close();
 				            conn.close(); 
@@ -560,16 +593,16 @@ public class Main extends JavaPlugin implements Listener {
 						    {
 						      Message message = new MimeMessage(session);
 						      message.setFrom(new InternetAddress("gmail_username"));
-						      message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(args[0]));
-						      message.setSubject(getConfig().getString("gmail.subject").replace("PLAYER", p.getName()));
-						      message.setText(getConfig().getString("gmail.message").replace("PLAYER", p.getName()));
+						      message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(usermail));
+						      message.setSubject(getConfig().getString("gmail.subject").replace("PLAYER", p.getName()).replace("PASSWORD", pass));
+						      message.setText(getConfig().getString("gmail.message").replace("PLAYER", p.getName()).replace("PASSWORD", pass));
 						      Transport.send(message);
-						      p.sendMessage(ChatColor.GREEN+"Your email "+args[0]+" is now set");
+						      p.sendMessage(ChatColor.GREEN+"A password reminder has been sent to "+usermail);
 						      props.clear();
 						    }
 						    catch (MessagingException e)
 						    {
-						    	p.sendMessage(ChatColor.DARK_PURPLE+"Email registration failed");
+						    	p.sendMessage(ChatColor.DARK_PURPLE+"Email password reminder failed");
 						      throw new RuntimeException(e);
 						    }
 						    
@@ -583,21 +616,10 @@ public class Main extends JavaPlugin implements Listener {
 				            System.err.println("Login SQL Error! on player changepasswd "); 
 				            System.err.println(e.getMessage()); 
 				            p.sendMessage(ChatColor.DARK_PURPLE+"Please comment to admin this error: " + e.getMessage());
-				        }
-			      }else{
-			    	  p.sendMessage(ChatColor.DARK_PURPLE+"Please use an email");
-			    	  return true;
-			      }}
-			      
-			      
-			    
-				
-			}
-			if(args.length >= 2){
-				sender.sendMessage(ChatColor.DARK_PURPLE + "use /setemail email@gmail.com");
-			}
-		}
-		
+				        }}}
+		if(args.length >= 1){
+			p.sendMessage("please use /forgotpass");
+		}}
 		
 if(command.getName().equalsIgnoreCase("login")){
 	if(args.length == 0){
@@ -609,12 +631,16 @@ if(command.getName().equalsIgnoreCase("login")){
 			if(getConfigplayers.getString(p.getName() + ".password").equals(args[0])){
 				if(loginuser.contains(p.getName())){
 					loginuser.remove(p.getPlayer().getName());
-					sender.sendMessage(ChatColor.YELLOW + "Login Successful.");
-					int x = getConfigplayers.getInt("saveloc."+p.getName()+".x");
-					int y = getConfigplayers.getInt("saveloc."+p.getName()+".y");
-					int z = getConfigplayers.getInt("saveloc."+p.getName()+".z");
-					p.getPlayer().teleport(new Location(p.getWorld(),x,y,z));
-					
+					sender.sendMessage(ChatColor.YELLOW + "Login Successful.");	
+					for(int s=0;s<getServer().getWorlds().size();s++){
+						if(getServer().getWorlds().get(s).getWorldFolder().toString().replace("./", "").equals(getConfigplayers.getString("saveloc."+p.getName()+".world")) ){
+							int x = getConfigplayers.getInt("saveloc."+p.getName()+".x");
+							int y = getConfigplayers.getInt("saveloc."+p.getName()+".y");
+							int z = getConfigplayers.getInt("saveloc."+p.getName()+".z");
+							Location newloc = new Location(getServer().getWorlds().get(s), x,y,z);
+							p.teleport(newloc);
+							p.sendMessage(ChatColor.YELLOW + "teleporting to saved location");	
+						}}					
 					getConfigplayers.set(p.getAddress().getHostName().replace(".", ",") + ".name", p.getName());
 					try {getConfigplayers.save(archivo);} catch (IOException e) {e.printStackTrace();}
 				}
@@ -624,7 +650,6 @@ if(command.getName().equalsIgnoreCase("login")){
 
 			}else{p.sendMessage(ChatColor.DARK_PURPLE + "you are not registred on this server, please do");
 			}}
-		
 		if(getConfig().getBoolean("mysql.use")){
 				try { 
 					String ip = getConfig().getString("mysql.ip");
@@ -639,7 +664,6 @@ if(command.getName().equalsIgnoreCase("login")){
 		          tomar.setString(1, p.getPlayer().getName());// ... tomar.setString(2, p.getIteminhand)
 		          ResultSet obtenido = tomar.executeQuery();//pone en un como array los resultados
 		          obtenido.next();//de lo mismo que el de arriba
-		          
 		          PreparedStatement cambiar = conn.prepareStatement("UPDATE `users` SET ip=?,online=1 WHERE player=?;");
 		          cambiar.setString(1, p.getAddress().getHostName());
 		          cambiar.setString(2, p.getPlayer().getName());
