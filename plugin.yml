@@ -1,6 +1,8 @@
 name: LoginMeIn
 main: com.craftilandia.loginmein.Main
-version: 5
+version: 6
+author: raton023
+website: http://dev.bukkit.org/bukkit-plugins/loginmein/
 commands:
     login:
         usage: /login <password>
@@ -17,3 +19,6 @@ commands:
     setemail:
         usage: /setemail <password>
         description: set your email for recover passwords
+    forgotpass:
+        usage: /forgotpass
+        description: send your password to the registered email
